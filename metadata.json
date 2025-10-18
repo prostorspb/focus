@@ -1,0 +1,8 @@
+{
+  "name": "Android app  Focus ADHD Companion",
+  "description": "A minimalist, gesture-based interface for capturing thoughts (text, voice, photo) with minimal distraction, designed for individuals with ADHD.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

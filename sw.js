@@ -1,0 +1,54 @@
+const CACHE_NAME = 'focus-app-cache-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/index.tsx',
+  '/App.tsx',
+  '/types.ts',
+  '/storage.ts',
+  '/components/icons.tsx',
+  '/components/InteractionZone.tsx',
+  '/components/NoteList.tsx',
+  'https://cdn.tailwindcss.com',
+  'https://unpkg.com/dexie@3/dist/dexie.js',
+  'https://aistudiocdn.com/react@^19.2.0',
+  'https://aistudiocdn.com/react-dom@^19.2.0'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
+      }
+    )
+  );
+});
+
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
