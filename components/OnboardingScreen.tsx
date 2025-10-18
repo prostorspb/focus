@@ -11,32 +11,71 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     camera: false,
     microphone: false,
   });
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const requestPermissions = async () => {
+    setIsRequesting(true);
+    setErrorMessage('');
+
     try {
       // Request camera permission
-      const videoStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false
-      });
-      videoStream.getTracks().forEach(track => track.stop());
-      setPermissionsGranted(prev => ({ ...prev, camera: true }));
+      let cameraGranted = false;
+      try {
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+          audio: false
+        });
+        videoStream.getTracks().forEach(track => track.stop());
+        setPermissionsGranted(prev => ({ ...prev, camera: true }));
+        cameraGranted = true;
+      } catch (cameraError: any) {
+        console.error('Camera permission denied:', cameraError);
+        if (cameraError.name === 'NotAllowedError') {
+          setErrorMessage('Доступ к камере был отклонён. Нажмите "Разрешить" в диалоге браузера.');
+        } else if (cameraError.name === 'NotFoundError') {
+          setErrorMessage('Камера не найдена на устройстве.');
+        } else {
+          setErrorMessage(`Ошибка доступа к камере: ${cameraError.message}`);
+        }
+        setIsRequesting(false);
+        return;
+      }
 
       // Request microphone permission
-      const audioStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false
-      });
-      audioStream.getTracks().forEach(track => track.stop());
-      setPermissionsGranted(prev => ({ ...prev, microphone: true }));
+      let microphoneGranted = false;
+      try {
+        const audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false
+        });
+        audioStream.getTracks().forEach(track => track.stop());
+        setPermissionsGranted(prev => ({ ...prev, microphone: true }));
+        microphoneGranted = true;
+      } catch (micError: any) {
+        console.error('Microphone permission denied:', micError);
+        if (micError.name === 'NotAllowedError') {
+          setErrorMessage('Доступ к микрофону был отклонён. Нажмите "Разрешить" в диалоге браузера.');
+        } else if (micError.name === 'NotFoundError') {
+          setErrorMessage('Микрофон не найден на устройстве.');
+        } else {
+          setErrorMessage(`Ошибка доступа к микрофону: ${micError.message}`);
+        }
+        setIsRequesting(false);
+        return;
+      }
 
-      // Both permissions granted
-      setTimeout(() => {
-        setStep(2);
-      }, 500);
+      // Both permissions granted - move to tutorial
+      if (cameraGranted && microphoneGranted) {
+        setIsRequesting(false);
+        setTimeout(() => {
+          setStep(2);
+        }, 500);
+      }
     } catch (error) {
-      console.error('Permission denied:', error);
-      alert('Для работы приложения необходимы разрешения на доступ к камере и микрофону. Пожалуйста, разрешите доступ в настройках браузера.');
+      console.error('Unexpected error:', error);
+      setErrorMessage('Произошла непредвиденная ошибка. Попробуйте снова.');
+      setIsRequesting(false);
     }
   };
 
@@ -64,11 +103,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
     // Permissions request screen
     <div key="permissions" className="flex flex-col items-center justify-center h-full px-6 text-center">
       <h2 className="text-3xl font-bold mb-6">Разрешения</h2>
-      <p className="text-lg text-gray-400 mb-8 max-w-md">
+      <p className="text-lg text-gray-400 mb-4 max-w-md">
         Focus использует камеру и микрофон для захвата фото и аудио заметок
       </p>
+      {!permissionsGranted.camera && !permissionsGranted.microphone && !errorMessage && (
+        <div className="mb-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg max-w-md">
+          <p className="text-blue-200 text-sm">
+            💡 При нажатии кнопки браузер запросит разрешения. Пожалуйста, выберите <strong>"Разрешить"</strong> в диалоге.
+          </p>
+        </div>
+      )}
 
-      <div className="space-y-4 mb-12 w-full max-w-md">
+      <div className="space-y-4 mb-8 w-full max-w-md">
         <div className="bg-gray-800 p-6 rounded-2xl flex items-center">
           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-4">
             <CameraIcon className="w-6 h-6 text-white" />
@@ -96,15 +142,37 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         </div>
       </div>
 
+      {errorMessage && (
+        <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded-lg max-w-md">
+          <p className="text-red-300 text-sm mb-2">{errorMessage}</p>
+          <p className="text-red-200 text-xs">
+            При нажатии на кнопку ниже браузер покажет диалог с запросом разрешений.
+            Выберите "Разрешить" для продолжения.
+          </p>
+        </div>
+      )}
+
+      {isRequesting && !errorMessage && (
+        <div className="mb-6 p-4 bg-blue-900/30 border border-blue-500 rounded-lg max-w-md">
+          <p className="text-blue-300 text-sm">Ожидание разрешения от браузера...</p>
+        </div>
+      )}
+
       <button
         onClick={requestPermissions}
-        className="bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
+        disabled={isRequesting}
+        className={`px-8 py-4 rounded-full text-lg font-semibold transition-colors ${
+          isRequesting
+            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 text-white hover:bg-blue-700'
+        }`}
       >
-        Разрешить доступ
+        {isRequesting ? 'Запрашиваем доступ...' : 'Разрешить доступ'}
       </button>
       <button
         onClick={onComplete}
-        className="mt-4 text-gray-500 underline"
+        disabled={isRequesting}
+        className="mt-4 text-gray-500 underline disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Пропустить (функции будут ограничены)
       </button>
