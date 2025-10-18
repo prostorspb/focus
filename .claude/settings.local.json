@@ -16,7 +16,8 @@
       "Bash(netlify deploy:*)",
       "Bash(curl:*)",
       "Bash(node generate-png-icons.js:*)",
-      "Bash(npx tailwindcss:*)"
+      "Bash(npx tailwindcss:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []
