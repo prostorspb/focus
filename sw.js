@@ -1,12 +1,11 @@
-const CACHE_NAME = 'focus-app-cache-v3';
+const CACHE_NAME = 'focus-app-cache-v4';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192x192.svg',
-  '/icon-512x512.svg',
-  'https://cdn.tailwindcss.com'
+  '/icon-512x512.svg'
 ];
 
 self.addEventListener('install', event => {
