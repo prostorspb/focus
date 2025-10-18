@@ -14,9 +14,25 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   const [isRequesting, setIsRequesting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Check if running in secure context
+  const isSecureContext = window.isSecureContext;
+  const currentProtocol = window.location.protocol;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
   const requestPermissions = async () => {
     setIsRequesting(true);
     setErrorMessage('');
+
+    // Check if getUserMedia is available
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setIsRequesting(false);
+      setErrorMessage(
+        'Доступ к камере и микрофону недоступен. ' +
+        'Убедитесь, что приложение открыто через HTTPS (или localhost). ' +
+        'HTTP не поддерживается для доступа к медиа-устройствам.'
+      );
+      return;
+    }
 
     try {
       // Request camera permission
@@ -106,7 +122,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       <p className="text-lg text-gray-400 mb-4 max-w-md">
         Focus использует камеру и микрофон для захвата фото и аудио заметок
       </p>
-      {!permissionsGranted.camera && !permissionsGranted.microphone && !errorMessage && (
+      {!isSecureContext && !isLocalhost && !errorMessage && (
+        <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-600 rounded-lg max-w-md">
+          <p className="text-yellow-200 text-sm mb-2">
+            ⚠️ <strong>Внимание!</strong> Приложение открыто через {currentProtocol}
+          </p>
+          <p className="text-yellow-100 text-xs">
+            Доступ к камере и микрофону требует HTTPS или localhost.
+            Откройте приложение через localhost:3000 или используйте HTTPS.
+          </p>
+        </div>
+      )}
+
+      {!permissionsGranted.camera && !permissionsGranted.microphone && !errorMessage && isSecureContext && (
         <div className="mb-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg max-w-md">
           <p className="text-blue-200 text-sm">
             💡 При нажатии кнопки браузер запросит разрешения. Пожалуйста, выберите <strong>"Разрешить"</strong> в диалоге.
@@ -145,10 +173,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
       {errorMessage && (
         <div className="mb-6 p-4 bg-red-900/30 border border-red-500 rounded-lg max-w-md">
           <p className="text-red-300 text-sm mb-2">{errorMessage}</p>
-          <p className="text-red-200 text-xs">
-            При нажатии на кнопку ниже браузер покажет диалог с запросом разрешений.
-            Выберите "Разрешить" для продолжения.
-          </p>
+          {!navigator.mediaDevices ? (
+            <div className="text-red-200 text-xs mt-3 space-y-2">
+              <p className="font-semibold">Как решить проблему:</p>
+              <p>1. Убедитесь, что используете <strong>HTTPS</strong></p>
+              <p>2. Или откройте через <strong>localhost:3000</strong></p>
+              <p>3. Проверьте, что браузер поддерживает WebRTC</p>
+            </div>
+          ) : (
+            <p className="text-red-200 text-xs mt-2">
+              При повторной попытке браузер покажет диалог с запросом разрешений.
+              Выберите "Разрешить" для продолжения.
+            </p>
+          )}
         </div>
       )}
 
