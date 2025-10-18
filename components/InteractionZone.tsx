@@ -285,23 +285,30 @@ export const InteractionZone: React.FC<InteractionZoneProps> = ({ addNote }) => 
                 );
             case InteractionMode.AudioReady:
                 return (
-                    <div className="w-full h-full flex flex-col items-center justify-center">
-                        <button onClick={startRecording} className="bg-red-500 rounded-full p-6 animate-pulse hover:animate-none transition-transform hover:scale-110">
-                            <MicrophoneIcon className="w-16 h-16 text-white" />
-                        </button>
-                         <button onClick={resetState} className="absolute top-4 right-4 bg-black/50 text-white rounded-full p-2">
-                             <XCircleIcon className="w-8 h-8"/>
+                    <div className="w-full h-full flex flex-col items-center justify-center relative bg-gray-900">
+                        <div className="flex flex-col items-center relative z-30">
+                            <button
+                                onClick={startRecording}
+                                className="bg-red-500 rounded-full p-8 shadow-2xl animate-pulse hover:animate-none transition-transform hover:scale-110"
+                            >
+                                <MicrophoneIcon className="w-20 h-20 text-white" />
+                            </button>
+                            <p className="mt-6 text-lg text-gray-300 font-medium">Нажмите для записи</p>
+                        </div>
+                        <button onClick={resetState} className="absolute top-4 right-4 bg-black/70 text-white rounded-full p-3 hover:bg-black transition-colors z-40">
+                            <XCircleIcon className="w-8 h-8"/>
                         </button>
                     </div>
                 );
             case InteractionMode.Recording:
                  return (
-                    <div className="w-full h-full flex flex-col items-center justify-center">
-                        <button onClick={stopRecording} className="bg-red-600 rounded-full p-6 relative">
-                            <MicrophoneIcon className="w-16 h-16 text-white" />
-                             <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping"></div>
+                    <div className="w-full h-full flex flex-col items-center justify-center relative bg-gray-900">
+                        <button onClick={stopRecording} className="bg-red-600 rounded-full p-8 relative shadow-2xl z-10">
+                            <MicrophoneIcon className="w-20 h-20 text-white" />
+                            <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping"></div>
                         </button>
-                        <p className="mt-4 text-lg">Recording...</p>
+                        <p className="mt-6 text-xl font-semibold text-white">Запись...</p>
+                        <p className="mt-2 text-sm text-gray-400">Нажмите для остановки</p>
                     </div>
                 );
             case InteractionMode.Text:
@@ -340,13 +347,14 @@ export const InteractionZone: React.FC<InteractionZoneProps> = ({ addNote }) => 
     const top = isExpanded ? '0' : '50%';
     const baseTranslate = isExpanded ? '0' : '-50%';
     const dragOffset = mode === InteractionMode.Text ? `${y}px` : '0px';
+    const zIndex = isExpanded ? 'z-50' : 'z-10'; // Higher z-index when expanded to be above header
 
     return (
         <div
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            className="absolute left-0 w-full bg-gray-900 touch-none flex items-center justify-center z-10"
+            className={`absolute left-0 w-full bg-gray-900 touch-none flex items-center justify-center ${zIndex}`}
             style={{
                 height,
                 top,
