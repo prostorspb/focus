@@ -89,15 +89,34 @@ Notes are stored with:
 
 **Wake Lock**: Prevents screen sleep during recording/camera usage (WakeLock API).
 
-### PWA Features
+### PWA Features & Installation
+
+**Onboarding Experience** ([components/OnboardingScreen.tsx](components/OnboardingScreen.tsx)):
+- First-launch onboarding flow (shown once, tracked via localStorage)
+- Welcome screen introducing the app
+- Permission request screen that requests both camera and microphone access upfront
+- Tutorial screen explaining gesture controls
+- Critical for Android: Permissions are requested during onboarding so they persist for the installed PWA
 
 **Service Worker** ([sw.js](sw.js)):
 - Cache-first strategy for offline support
-- Cache name: `focus-app-cache-v1`
-- Pre-caches all app files and CDN dependencies
-- Note: Currently caches hardcoded CDN URLs for React and Tailwind
+- Cache name: `focus-app-cache-v2`
+- Runtime caching for additional resources
+- Skips caching media device requests
 
-**Manifest**: [manifest.webmanifest](manifest.webmanifest) (currently empty - needs configuration for proper PWA installation).
+**Manifest** ([manifest.webmanifest](manifest.webmanifest)):
+- Fully configured for Android installation
+- Display mode: `standalone` (fullscreen, no browser UI)
+- Orientation: `portrait` (optimal for mobile use)
+- Theme colors: Dark (#111827) for consistent UI
+- Icons: SVG icon (scalable for all sizes)
+
+**Installation on Android**:
+See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions. Key points:
+- PWA installs as a native-like app from Chrome
+- After installation, permissions persist (no repeated prompts)
+- Runs fullscreen without browser chrome
+- Available offline after first load
 
 ### UI/UX Design
 
@@ -127,6 +146,10 @@ Experimental decorators enabled for Dexie.js compatibility.
 
 ```
 App.tsx (root)
+├── OnboardingScreen (first-launch only, conditionally rendered)
+│   ├── Welcome screen
+│   ├── Permissions request screen
+│   └── Tutorial screen
 ├── InteractionZone (gesture-based mode switcher)
 │   ├── Text mode (default)
 │   ├── Audio modes (ready/recording)
@@ -163,10 +186,26 @@ Audio playback requires converting data URLs to Blob URLs (see `dataURLtoBlobUrl
 
 The storage.ts file uses `(this as Dexie)` type casting to work around TypeScript inference issues with Dexie subclassing.
 
+### Permission Handling
+
+**Critical Pattern**: Permissions must be requested in response to user action (browser security requirement).
+
+The onboarding flow ([OnboardingScreen.tsx](components/OnboardingScreen.tsx)):
+1. User clicks "Разрешить доступ" button
+2. Sequentially requests camera then microphone access
+3. Immediately releases streams (only testing permissions)
+4. Once granted, permissions persist for installed PWA
+5. localStorage flag `onboarding_completed` prevents re-showing onboarding
+
+**Why this works for Android PWA**:
+- Installed PWA maintains permissions across sessions
+- No need to re-request on each app launch
+- Works like a native app with persistent permissions
+- Onboarding only shows once per installation
+
 ## Known Limitations
 
-- Service worker caches CDN URLs that may change
-- Manifest is empty and needs configuration for proper PWA installation
 - GEMINI_API_KEY is configured but not currently used in the app logic
 - No TypeScript linting configured (no ESLint in package.json)
 - No test suite configured
+- Icon is basic SVG (could be improved with custom design)

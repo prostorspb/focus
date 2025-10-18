@@ -1,18 +1,10 @@
-const CACHE_NAME = 'focus-app-cache-v1';
+const CACHE_NAME = 'focus-app-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/index.tsx',
-  '/App.tsx',
-  '/types.ts',
-  '/storage.ts',
-  '/components/icons.tsx',
-  '/components/InteractionZone.tsx',
-  '/components/NoteList.tsx',
-  'https://cdn.tailwindcss.com',
-  'https://unpkg.com/dexie@3/dist/dexie.js',
-  'https://aistudiocdn.com/react@^19.2.0',
-  'https://aistudiocdn.com/react-dom@^19.2.0'
+  '/manifest.webmanifest',
+  '/icon.svg',
+  'https://cdn.tailwindcss.com'
 ];
 
 self.addEventListener('install', event => {
@@ -26,13 +18,29 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Skip caching for media requests (camera/microphone access)
+  if (event.request.url.includes('getUserMedia') ||
+      event.request.url.includes('mediaDevices')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).then(fetchResponse => {
+          // Cache successful responses (except for API calls)
+          if (fetchResponse && fetchResponse.status === 200 &&
+              fetchResponse.type === 'basic') {
+            const responseToCache = fetchResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return fetchResponse;
+        });
       }
     )
   );

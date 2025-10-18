@@ -2,13 +2,18 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Note } from './types';
 import { InteractionZone } from './components/InteractionZone';
 import { NoteList } from './components/NoteList';
+import { OnboardingScreen } from './components/OnboardingScreen';
 import { db } from './storage';
 import { HamburgerIcon, XCircleIcon } from './components/icons';
 
 function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isNotesVisible, setIsNotesVisible] = useState(false);
-  
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    // Check if user has completed onboarding
+    return !localStorage.getItem('onboarding_completed');
+  });
+
   // State for swipe-to-close gesture
   const [isDraggingSidebar, setIsDraggingSidebar] = useState(false);
   const dragStartX = useRef(0);
@@ -74,13 +79,21 @@ function App() {
   }, [isDraggingSidebar]);
   
   const sidebarClasses = [
-    'fixed', 'top-0', 'left-0', 'h-full', 'w-full', 'max-w-md', 'bg-gray-800', 
+    'fixed', 'top-0', 'left-0', 'h-full', 'w-full', 'max-w-md', 'bg-gray-800',
     'shadow-2xl', 'z-40', 'transform',
     isNotesVisible ? 'translate-x-0' : '-translate-x-full',
     // Disable CSS transitions during drag for instant feedback
     !isDraggingSidebar ? 'transition-transform duration-300 ease-in-out' : ''
   ].filter(Boolean).join(' ');
 
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem('onboarding_completed', 'true');
+    setShowOnboarding(false);
+  }, []);
+
+  if (showOnboarding) {
+    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div className="h-screen w-screen flex flex-col font-sans antialiased relative overflow-hidden bg-gray-900">
