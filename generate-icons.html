@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <h1>Icon Generator</h1>
+    <p>Click the buttons to download icons:</p>
+    <button onclick="generateIcon(192)">Download 192x192</button>
+    <button onclick="generateIcon(512)">Download 512x512</button>
+    <button onclick="generateIcon(180)">Download 180x180 (Apple)</button>
+    <br><br>
+    <canvas id="canvas" style="border:1px solid black"></canvas>
+
+    <script>
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="128" fill="#3B82F6"/>
+  <circle cx="256" cy="256" r="180" fill="#1E40AF" opacity="0.3"/>
+  <text x="256" y="360" font-family="Arial, sans-serif" font-size="280" font-weight="bold" fill="#FFFFFF" text-anchor="middle">F</text>
+</svg>`;
+
+        function generateIcon(size) {
+            const canvas = document.getElementById('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            const img = new Image();
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}x${size}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                });
+            };
+
+            img.src = url;
+        }
+    </script>
+</body>
+</html>

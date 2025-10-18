@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Focus ADHD Companion app\n\nA minimalist, gesture-based PWA for capturing thoughts (text, voice, photo) with minimal distraction, designed for individuals with ADHD.\n\nFeatures:\n- Gesture-based mode switching (drag up/down)\n- Text, audio, and photo note capture\n- IndexedDB storage with Dexie.js\n- PWA with offline support\n- Haptic feedback and audio cues\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh repo create:*)",
+      "Bash(git push:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(netlify login:*)",
+      "Bash(netlify status:*)",
+      "Bash(npm run build:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(curl:*)",
+      "Bash(node generate-png-icons.js:*)"
     ],
     "deny": [],
     "ask": []

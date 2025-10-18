@@ -3,6 +3,7 @@ import { Note } from './types';
 import { InteractionZone } from './components/InteractionZone';
 import { NoteList } from './components/NoteList';
 import { OnboardingScreen } from './components/OnboardingScreen';
+import { InstallPrompt } from './components/InstallPrompt';
 import { db } from './storage';
 import { HamburgerIcon, XCircleIcon } from './components/icons';
 
@@ -138,6 +139,7 @@ function App() {
       </main>
       
       <InteractionZone addNote={addNote} />
+      <InstallPrompt />
     </div>
   );
 }
